@@ -43,7 +43,7 @@
     
     %% Main body
     
-    while length(List)>1
+    while length(List) > 1
         
         % Status update
         disp('============')
@@ -129,6 +129,13 @@
         % Eliminate words
         List = List(find(~to_eliminate));
         
+    end
+    
+    if length(List) == 0
+        error('Guesses did not converge')
+    else
+        disp('============')
+        disp(['Solution: ' List{:}])
     end
     
 % end
