@@ -24,22 +24,19 @@
     %% Inputs
     
     word_length = 5;  % number of letters in the word to be guessed
-    rand_show   = 20; % number of random valid words to show after every guess
-    
-    % Dictionary
-    D.filename = 'words_alpha.txt';
-    D.path     = 'C:\Users\Admin\Desktop\wordle';
+    rand_show   = 25; % number of random valid words to show after every guess
+    dict_source = 'C:\Users\ddichter\Desktop\personal\wordle_solver\words_alpha.txt'; % dictionary
     
     %% Load dictionary
     
-    D.word = importdata([D.path '\' D.filename]);
-    D.word_length = zeros(size(D.word,1),1);
-    for w = 1 : size(D.word,1);
-        D.word_length(w) = length(D.word{w});
+    dict_word = importdata(dict_source);
+    dict_word_length = zeros(length(dict_word),1);
+    for w = 1 : length(dict_word)
+        dict_word_length(w) = length(dict_word{w});
     end
+    ind_valid_length = find(dict_word_length == word_length);
     
-    ind_valid_length = find(D.word_length == word_length);
-    List = D.word(ind_valid_length);
+    List = dict_word(ind_valid_length);
     
     %% Main body
     
@@ -61,7 +58,7 @@
             warning('Invalid length')
             continue
         end
-        if length(find(strcmp(D.word, guess))) ~= 1
+        if length(find(strcmp(dict_word, guess))) ~= 1
             warning('Invalid word')
             continue
         end
