@@ -14,7 +14,11 @@
         % 'g': green, in word, in that spot
     
     % Daniel W. Dichter
-    % 2022-01-11
+    % 2022-01-11:
+        % First version
+    % 2022-01-16:
+        % Revised to support words with multi-instance letters, e.g. WADED, DOORS, etc.
+        % Swapped in a better dictionary with 4k 5-letter words (previously, 16k)
     
     %%
     
@@ -25,17 +29,19 @@
     
     word_length = 5;  % number of letters in the word to be guessed
     rand_show   = 25; % number of random valid words to show after every guess
-    dict_source = 'C:\Users\ddichter\Desktop\personal\wordle_solver\words_alpha.txt'; % dictionary
+    dict_source = 'C:\Users\Admin\Desktop\wordle\english_usa.txt';
     
     %% Load dictionary
     
     dict_word = importdata(dict_source);
-    dict_word_length = zeros(length(dict_word),1);
+    dict_length = zeros(size(dict_word,1),1);
     for w = 1 : length(dict_word)
-        dict_word_length(w) = length(dict_word{w});
+        if isempty(regexprep(dict_word{w},'[a-z]','')); % skip non-valid words, e.g. with punctuation
+            dict_length(w) = length(dict_word{w});
+        end
     end
-    ind_valid_length = find(dict_word_length == word_length);
     
+    ind_valid_length = find(dict_length == word_length);
     List = dict_word(ind_valid_length);
     
     %% Main body
@@ -86,14 +92,35 @@
             switch response(ind)
                 
                 case 'k'
-                    % Eliminate words that contain this letter
-                    for w = 1 : length(List)
-                        if length(regexprep(List{w}, letter, '')) ~= word_length
-                            to_eliminate(w) = 1;
+                    
+                    response_match = response(find(guess == letter));
+                    if length(regexprep(response_match, 'k', '')) == 0 % All tile(s) of this letter were gray
+                        
+                        % Eliminate all words that contain this letter
+                        for w = 1 : length(List)
+                            if length(regexprep(List{w}, letter, '')) ~= word_length
+                                to_eliminate(w) = 1;
+                            end
                         end
+                        
+                    else
+                        
+                        % This is a gray tile, but there are other tile(s)
+                        % of either yellow or green of the same letter. We
+                        % know that the solution does not contain this
+                        % letter at this position.
+                        
+                        % Eliminate words that contain this letter in this position
+                        for w = 1 : length(List)
+                            if strcmp(List{w}(ind), letter)
+                                to_eliminate(w) = 1;
+                            end
+                        end
+                        
                     end
                     
                 case 'y'
+                    
                     % Eliminate words that contain this letter in this position
                     for w = 1 : length(List)
                         if strcmp(List{w}(ind), letter)
@@ -101,14 +128,16 @@
                         end
                     end
                     
-                    % Eliminate words that do not contain this letter
+                    % Eliminate words that do not contain this letter in non-green non-matching tiles
+                    ind_search = intersect(find(response~='g'), find(guess~=letter));
                     for w = 1 : length(List)
-                        if length(regexprep(List{w}, letter, '')) == word_length
+                        if length(find(List{w}(ind_search) == letter)) == 0
                             to_eliminate(w) = 1;
                         end
                     end
                     
                 case 'g'
+                    
                     % Eliminate words that do not contain this letter in this position
                     for w = 1 : length(List)
                         if ~strcmp(List{w}(ind), letter)
