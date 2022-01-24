@@ -40,16 +40,28 @@
     %% Inputs
     
     usermode    = 'auto'; % 'auto' or 'manual'
-    auto_iter   = 1; % 'auto' usermode - number of iterations to perform
+    auto_iter   = 100; % 'auto' usermode - number of iterations to perform
     qty_suggest = 5; % 'manual' usermode - number of words to show after every guess
+    auto_list   = {
+%                     'crimp'
+%                     'wince'
+%                     'prick'
+%                     'robot'
+%                     'point'
+%                     'proxy'
+%                     'shire'
+%                     'solar'
+%                     'panic'
+%                     'tangy'
+                  };
     
     fn_dict_solutions = 'wordlist_solutions.txt';
     fn_dict_guesses   = 'wordlist_guesses.txt';
     
     % AI parameters
     green_yellow_ratio = 2; % value_green / value_yellow, relative
-    Gauss.stdev = 0.15;
     Gauss.mean  = 0.5;
+    Gauss.stdev = 0.15;
 
     %% Constants
     
@@ -88,14 +100,22 @@
     
     ind_iter = 1;
     
-    if strcmp(usermode, 'manual')
-        auto_iter = 1;
+    switch usermode
+        case 'auto'
+            if length(auto_list) >= 1
+                auto_iter = length(auto_list);
+            end
+        case 'manual'
+            auto_iter = 1;
     end
     
     SOLS   = {};
     SCORES = [];
     
     while ind_iter <= auto_iter
+        
+        hist_guess    = {};
+        hist_response = {};
 
         %% Load dictionary
 
@@ -109,8 +129,13 @@
 
             case 'auto'
 
-                i_sol = randi(length(DICT_SOL),1);
-                SOLUTION = DICT_SOL{i_sol};
+                if length(auto_list) >= 1
+                    SOLUTION = auto_list{ind_iter};
+                else
+                    i_sol = randi(length(DICT_SOL),1);
+                    SOLUTION = DICT_SOL{i_sol};
+                end
+
                 disp(['Solution: ' SOLUTION])
 
             case 'manual'
@@ -321,6 +346,9 @@
                     end
 
             end
+            
+            hist_guess{end+1}    = guess;
+            hist_response{end+1} = response;
 
             %% Eliminate words per guess/response pair
 
@@ -398,7 +426,17 @@
 
             % Eliminate words
             DICT_SOL = DICT_SOL(find(~to_eliminate));
-            if ~strcmp(response, repmat('g',[1,word_length])) % if it didn't come back all green, must go another round
+            
+            correct_response = repmat('g',[1,word_length]);
+            
+            if length(DICT_SOL)==1 && ~strcmp(response,correct_response) % you did not guess the word, but there is only word left
+                ind_round            = ind_round + 1;
+                hist_guess{end+1}    = DICT_SOL{:};
+                hist_response{end+1} = repmat('g',[1,word_length]);
+            elseif strcmp(response,correct_response) % you got lucky and guessed the solution
+                DICT_SOL = {guess};
+            else
+                % Keep trying
                 ind_round = ind_round + 1;
             end
 
@@ -415,6 +453,16 @@
             disp(['Score:    ' num2str(ind_round)]);
             disp(['Average:  ' num2str(mean(SCORES(:)))])
             disp(['St. dev.: ' num2str(std(SCORES(:)))])
+            
+            disp(' ')
+            disp('History:')
+            for i = 1 : length(hist_guess)
+                disp(hist_guess{i})
+            end
+            disp(' ')
+            for i = 1 : length(hist_response)
+                disp(hist_response{i})
+            end
             disp(divider)
             disp(divider)
             
