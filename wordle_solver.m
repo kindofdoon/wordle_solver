@@ -38,7 +38,7 @@
     
     word_length = 5;  % number of letters in the word to be guessed
     qty_suggest = 10; % number of random valid words to show after every guess
-    dict_source = 'C:\Users\Admin\Desktop\wordle\english_usa.txt';
+    dict_source = 'english_usa.txt';
     
     % AI parameters
     green_yellow_ratio = 2; % value_green / value_yellow, relative
@@ -125,9 +125,13 @@
             set(gca,'xtick',1:length(alphabet))
             set(gca,'xticklabel',alpha_cell_array)
             xlim([0 length(alphabet)+1])
-            ylim([0 max(PROB(:))])
             title(['\rmProbability of ' num2str(length(List)) ' Valid ' num2str(word_length) '-Letter Words By Position #' num2str(ind_position) '\rm'])
 
+        end
+        
+        for ind_position = 1 : word_length
+            subplot(word_length,1,ind_position)
+            ylim([0 max(PROB(:))])
         end
         
         %% Convert probabilities into values
