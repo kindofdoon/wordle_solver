@@ -39,10 +39,10 @@
     
     %% Inputs
     
-    usermode    = 'auto'; % 'auto' or 'manual'
-    auto_iter   = 100; % 'auto' usermode - number of iterations to perform
-    qty_suggest = 5; % 'manual' usermode - number of words to show after every guess
-    auto_list   = {
+    usermode    = 'manual'; % 'auto' or 'manual'
+    auto_iter   = 100; % 'auto'   usermode - number of iterations to perform
+    qty_suggest = 5;   % 'manual' usermode - number of words to show after every guess
+    auto_list   = {    % 'auto'   usermode - specific solutions to solve
 %                     'crimp'
 %                     'wince'
 %                     'prick'
@@ -156,7 +156,7 @@
                 clf
                 set(gcf,'color','white')
                 pos = get(gcf,'position');
-                set(gcf,'position',[pos(1:2) 560 900])
+                set(gcf,'position',[pos(1) 50 560 900])
             end
 
             for ind_position = 1 : word_length
@@ -205,7 +205,7 @@
                     clf
                     set(gcf,'color','white')
                     pos = get(gcf,'position');
-                    set(gcf,'position',[pos(1:2) 560 900])
+                    set(gcf,'position',[pos(1) 50 560 900])
 
                 for ind_position = 1 : word_length
 
