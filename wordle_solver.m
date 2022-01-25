@@ -1,14 +1,24 @@
 % function wordle_solver
 
-    % A simple computer program to solve the word-guessing game "Wordle",
+    % A computer program to solve the word-guessing game "Wordle",
     % located at https://www.powerlanguage.co.uk/wordle/
     
-    % Starts with a complete dictionary and uses statistically-informed
-    % guesses and process of elimination to determine the solution. User
-    % must manually type in their guess and the response after each round.
-    % Case-sensitive - use lower case only.
+    % Uses statistically-informed guesses, game heuristics, and process of
+    % elimination to determine the solution in as few moves as possible.
     
-    % Responses must use the following syntax:
+    % Case-sensitive. Must use lowercase only.
+    
+    % Two usermodes:
+        % 'manual'
+            % The program suggests optimal next guesses. The player
+            % manually informs the program of their guesses and the
+            % responses.
+        % 'auto'
+            % The program plays against itself. The user can specify a set
+            % of solutions to solve, or the number of randomized games to
+            % play.
+    
+    % Responses use the following syntax:
         % 'k': gray, not in word
         % 'y': yellow, in word, but not in that spot
         % 'g': green, in word, in that spot
@@ -29,8 +39,11 @@
             % the set of possible words) for faster convergence. For 25 trials,
             % produced MEAN of 3.88 with STDEV of 0.88
         % 2022-01-24:
+            % Added actual Wordle guess and solution dictionaries
             % Now can automatically play against itself
-            % 100 trials, 3.69 mean, 0.61 stdev
+            % 100 trials, 3.69 mean, 0.61 stdev, worst score of 5
+        % 2022-01-25:
+            % Minor cleanup, documentation improvements
     
     %%
     
@@ -60,8 +73,8 @@
     
     % AI parameters
     green_yellow_ratio = 2; % value_green / value_yellow, relative
-    Gauss.mean  = 0.5;
-    Gauss.stdev = 0.15;
+    Gauss.mean         = 0.5;
+    Gauss.stdev        = 0.15;
 
     %% Constants
     
