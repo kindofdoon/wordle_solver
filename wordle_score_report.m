@@ -3,10 +3,7 @@
     clear
     clc
     
-%     fn_log = 'wordle_solver_log_2022_01_25_6_36_05_PM.txt';
-%     fn_log = 'wordle_solver_log_2022_01_27_3_02_40_PM.txt';
-%     fn_log = 'wordle_solver_log_2022_01_28_12_39_02_AM.txt';
-    fn_log = 'wordle_solver_log_2022_01_28_8_12_15_AM.txt';
+    fn_log = 'wordle_solver_log_2022_02_06_1_05_11_AM.txt';
     
     %%
     
@@ -39,7 +36,7 @@
     Gauss.y   = (1./(Gauss.stdev.*sqrt(2.*pi))) .* exp((-1/2).*((Gauss.x-Gauss.mean)./Gauss.stdev).^2);
     Gauss.y   = Gauss.y ./ max(Gauss.y);
     
-    figure
+    figure(7)
     clf
     hold on
     set(gcf,'color','white')
@@ -55,15 +52,17 @@
          })
 
     lbl = {'\bfScore Games PDF  CDF \rm'};
+    lbl_latex = {'Score & Games & PDF & CDF\\'};
     for b = 1 : bin.qty
         game_qty_str = num2str(bin.count(b),'%04.f');
-        lbl{end+1,1} = ['\bf' num2str(bin.center(b)) '\rm     ' game_qty_str '  ' num2str(bin.PDF(b),'%.2f') ' ' num2str(bin.CDF(b),'%.2f')];
+        lbl{end+1,1} = ['\bf' num2str(bin.center(b)) '\rm     ' game_qty_str '  ' num2str(bin.PDF(b),'%.3f') ' ' num2str(bin.CDF(b),'%.3f')];
+        lbl_latex{end+1,1} = [num2str(bin.center(b)) ' & ' num2str(bin.count(b)) ' & ' num2str(bin.PDF(b),'%.3f') ' & ' num2str(bin.CDF(b),'%.3f') '\\'];
     end
     
-    xlim([0 max(xlim)-1])
+    xlim([1 max(xlim)-1])
     ylim([0 max(ylim)+mean(abs(diff(get(gca,'ytick'))))]) % add some margin on top
     
-    text(max(xlim), max(ylim), lbl, 'HorizontalAlignment','right','VerticalAlignment','top','FontName','FixedWidth', 'FontSize',9)
+    text(max(xlim), max(ylim), lbl, 'HorizontalAlignment','right','VerticalAlignment','top','FontName','FixedWidth', 'FontSize',10)
     
     plot(Gauss.x, Gauss.y .* max(bin.count), 'w','LineWidth',2)
     plot(Gauss.x, Gauss.y .* max(bin.count), 'k')
