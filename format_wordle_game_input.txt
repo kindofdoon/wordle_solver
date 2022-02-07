@@ -1,0 +1,94 @@
+wordle_solver_log_2022_02_06_11_08_22_AM.txt
+Game #1: skill
+ 
+Words remaining: 2315
+soare - gkkkk
+ 
+Words remaining: 63
+flint - kygkk
+ 
+Words remaining: 3
+apeak - kkkky
+ 
+Words remaining: 1
+skill - ggggg
+ 
+Score: 4
+Mean:  4
+Stdev: 0
+Worst: 4
+Wins:  100.00%
+Left:  0h0m
+===========================
+Game #2: aloft
+ 
+Words remaining: 2315
+soare - kyykk
+ 
+Words remaining: 44
+aloft - ggggg
+ 
+Score: 2
+Mean:  3
+Stdev: 1.4142
+Worst: 4
+Wins:  100.00%
+Left:  0h0m
+===========================
+Game #3: pleat
+ 
+Words remaining: 2315
+soare - kkyky
+ 
+Words remaining: 68
+petal - gyygy
+ 
+Words remaining: 1
+pleat - ggggg
+ 
+Score: 3
+Mean:  3
+Stdev: 1
+Worst: 4
+Wins:  100.00%
+Left:  0h0m
+===========================
+Game #4: shard
+ 
+Words remaining: 2315
+soare - gkggk
+ 
+Words remaining: 11
+thack - kggkk
+ 
+Words remaining: 2
+shard - ggggg
+ 
+Score: 3
+Mean:  3
+Stdev: 0.8165
+Worst: 4
+Wins:  100.00%
+Left:  0h0m
+===========================
+Game #5: moist
+ 
+Words remaining: 2315
+soare - ygkkk
+ 
+Words remaining: 15
+buist - kkggg
+ 
+Words remaining: 4
+fehme - kkkyk
+ 
+Words remaining: 1
+moist - ggggg
+ 
+Score: 4
+Mean:  3.2
+Stdev: 0.83666
+Worst: 4
+Wins:  100.00%
+Left:  0h0m
+===========================
