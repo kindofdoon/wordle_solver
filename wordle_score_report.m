@@ -3,7 +3,8 @@
     clear
     clc
     
-    fn_log = 'wordle_solver_log_2022_02_06_1_05_11_AM.txt';
+%     fn_log = 'wordle_solver_log_2022_02_06_1_05_11_AM.txt';
+    fn_log = 'wordle_solver_log_2022_02_09_6_20_02_PM.txt';
     
     %%
     

@@ -76,8 +76,9 @@
     
     usermode      = 'auto'; % 'auto', 'manual', or 'debug'
     qty_suggest   = 10;     % 'manual' usermode - number of words to show after every guess
-    auto_game_qty = 2315;   % 'auto'   usermode - number of iterations to perform. If set to 2315, plays all games.
+    auto_game_qty = 2315;   % 'auto'   usermode - number of iterations to perform. If set to 2315, plays all games. If <2,315, plays random games.
     auto_list     = {       % 'auto'   usermode - specific solutions to solve; leave empty if not using
+
                     };
     
     fn_dict_solutions = 'wordlist_solutions.txt';
@@ -103,10 +104,9 @@
             P_vs_V.val = P_vs_V.val ./ max(P_vs_V.val(:));
         case 'triangle'
             P_vs_V.val = interp1([0 0.5 1], [0 1 0], P_vs_V.prob);
-        case 'sine'
-            P_vs_V.val = 1 - (sin((P_vs_V.prob-0.75) .* (2*pi)) .* 0.5 + 0.5); % one period of a sine function with V(P=0,1)=0 and V(P=1/2)=1
-            P_vs_V.val = P_vs_V.val .^ (1/3);
-            P_vs_V.val = P_vs_V.val ./ max(P_vs_V.val);
+        case 'sine'            
+            P_vs_V.val = sin(P_vs_V.prob*pi) .^ (2/3);
+            P_vs_V.val([1,end]) = 0;
         case 'parabola'
             P_vs_V.val = -(P_vs_V.prob-0.5).^2;
             P_vs_V.val = (P_vs_V.val-min(P_vs_V.val)) ./ (max(P_vs_V.val)-min(P_vs_V.val));
@@ -116,6 +116,12 @@
         case 'quartic_parabola_blend'
             P_vs_V.val = 4.*-(P_vs_V.prob-0.5).^4 -(P_vs_V.prob-0.5).^2;
             P_vs_V.val = (P_vs_V.val-min(P_vs_V.val)) ./ (max(P_vs_V.val)-min(P_vs_V.val));
+        case 'arc'
+            th = linspace(pi,0,length(P_vs_V.prob));
+            x = cos(th);
+            y = sin(th);
+            P_vs_V.val = interp1(x,y,linspace(-1,1,1000));
+            P_vs_V.val([1,end]) = 0;
         otherwise
             error('P_vs_S.shape not recognized')
     end
@@ -125,11 +131,18 @@
     set(gcf,'color','white')
     plot(P_vs_V.prob, P_vs_V.val, 'k')
     set(gca,'xtick',0:0.1:1)
-    set(gca,'ytick',0:0.25:1)
+    set(gca,'ytick',0:0.1:1)
     grid on
     grid minor
     xlabel('Probability, ~')
     ylabel('Value, ~')
+    axis square
+    axis equal
+%     set(gca,'FontSize',12)
+%     pos = get(gca,'position');
+%     set(gca,'position', pos + [-0.01 0.01 0.05 0.02])
+%     pos = get(gcf,'position');
+%     set(gcf,'position',[pos(1:2) 560 250])
     drawnow
     
     %% Constants
