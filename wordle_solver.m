@@ -64,6 +64,10 @@
             % Slight performance improvement, misc. cleanup.
             % Added some new transfer function shapes
             % Mean: 3.5961, Stdev. 0.67916, Worst 6 (for all 2,315)
+        % 2022-02-11
+            % Major simplification to the elimination algorithm. Now, I
+            % simply check against wordle_response.m for consistency and
+            % eliminate that way, rather that checking tile-by-tile
     
     %%
     
@@ -138,11 +142,6 @@
     ylabel('Value, ~')
     axis square
     axis equal
-%     set(gca,'FontSize',12)
-%     pos = get(gca,'position');
-%     set(gca,'position', pos + [-0.01 0.01 0.05 0.02])
-%     pos = get(gcf,'position');
-%     set(gcf,'position',[pos(1:2) 560 250])
     drawnow
     
     %% Constants
@@ -460,95 +459,15 @@
 
             %% Eliminate words per guess/response pair
 
-            % Eliminate all entries from the list that are not consistent
-            % with the most recent guess/response pair
-
             to_eliminate = zeros(length(DICT_SOL),1);
-
-            for ind = 1 : word_length % for each letter
-
-                letter = guess(ind);
-
-                switch response(ind)
-
-                    case 'k'
-
-                        response_match = response(find(guess == letter));
-                        response_non_gray = regexprep(response_match,'k','');
-                        quantity_this_letter_in_sol = length(response_non_gray);
-                        
-                        if length(regexprep(response_match, 'k', '')) == 0 % All tile(s) of this letter were gray
-
-                            % Eliminate all words that contain this letter
-                            for w = 1 : length(DICT_SOL)
-                                if ~isempty(find(DICT_SOL{w}==letter))
-                                    to_eliminate(w) = 1;
-                                end
-                            end
-
-                        else % Gray tile with at least one letter-matching yellow or green tile
-
-                            % This is a gray tile, but there are other tile(s)
-                            % of either yellow or green of the same letter. We
-                            % know that the solution does not contain this
-                            % letter at this position.
-
-                            for w = 1 : length(DICT_SOL)
-                                
-                                % Eliminate words that contain this letter in this position
-                                if strcmp(DICT_SOL{w}(ind), letter)
-                                    to_eliminate(w) = 1;
-                                    continue
-                                end
-                            
-                                % Since we are on a gray tile and have at least
-                                % one other non-gray tile (yellow or green), we
-                                % also know the total quantity of this letter
-                                % in the solution, which is equal to the sum of
-                                % the yellow and green tiles.
-                                if length(find(DICT_SOL{w} == letter)) ~= quantity_this_letter_in_sol;
-                                    to_eliminate(w) = 1;
-                                end
-                            end
-
-                        end
-
-                    case 'y'
-                        
-                        ind_search = intersect(find(response~='g'), find(guess~=letter));
-                        
-                        for w = 1 : length(DICT_SOL)
-                            
-                            % Eliminate words that contain this letter in this position
-                            if strcmp(DICT_SOL{w}(ind), letter)
-                                to_eliminate(w) = 1;
-                                continue
-                            end
-                            
-                            % Eliminate words that do not contain this letter in non-green non-matching tiles
-                            if length(find(DICT_SOL{w}(ind_search) == letter)) == 0
-                                to_eliminate(w) = 1;
-                            end
-                            
-                        end
-
-                    case 'g'
-
-                        % Eliminate words that do not contain this letter in this position
-                        for w = 1 : length(DICT_SOL)
-                            if ~strcmp(DICT_SOL{w}(ind), letter)
-                                to_eliminate(w) = 1;
-                            end
-                        end
-
-                    otherwise
-                        error('Unrecognized response')
-
-                end
-
-            end % Finished parsing the response
             
-            % Eliminate words
+            for s = 1 : length(DICT_SOL)
+                response_hypothetical = wordle_response(DICT_SOL{s}, guess);    
+                if ~strcmp(response_hypothetical, response)
+                    to_eliminate(s) = 1;
+                end
+            end
+            
             DICT_SOL = DICT_SOL(find(~to_eliminate));
             
             switch usermode
