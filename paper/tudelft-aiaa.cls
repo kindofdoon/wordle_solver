@@ -16,7 +16,7 @@
 %% All unknown options will be passed to the report class
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
 \ProcessOptions\relax
-\LoadClass[letterpaper,10.75pt]{article}
+\LoadClass[letterpaper,10pt]{article}
 
 %% Required Packages
 \RequirePackage{microtype}

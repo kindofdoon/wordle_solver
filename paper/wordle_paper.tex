@@ -30,10 +30,10 @@
 
 %%%%% Title %%%%%
 
-\title{Solving Wordle Heuristically \normalsize \color{red} \emph{(DRAFT --- \today}) \color{black}}
+\title{Solving Wordle Heuristically}
 
-\author{\textbf{Daniel W. Dichter}}
-\affil{Independent Researcher\\Cambridge, Massachusetts, U.S.A.\\daniel.w.dichter@gmail.com}
+\author{\textbf{Daniel W. Dichter} --- Independent Researcher}
+\affil{Cambridge, Massachusetts, U.S.A.\\daniel.w.dichter@gmail.com\\February 13, 2022}
 
 \begin{document}
 
@@ -44,7 +44,7 @@
 %%%%% Abstract %%%%%
 
 \begin{abstract}
-\noindent \normalfont Wordle is a daily word game in which a player must guess a hidden five-letter word in six or fewer tries. After each guess, they get a color-coded response that indicates how close their guess was. This paper describes a solver that wins all 2,315 possible games, averaging a score of 3.596 with a standard deviation of 0.679. This is comparable to the current-best solvers, yet is achieved heuristically with many fewer calculations.
+\noindent \normalfont Wordle is a daily word game in which a player must guess a hidden five-letter word in six or fewer tries. After each guess, they get a color-coded response that indicates how close their guess was. This paper describes a solver that wins all 2,315 possible games, averaging a score of 3.594 with a standard deviation of 0.676. This is comparable to the current-best solvers, yet is achieved heuristically with many fewer calculations.
 
 \end{abstract}
 
@@ -56,11 +56,11 @@
 
 \section{Game Parameters}
 
-Wordle has two dictionaries: 2,315 possible solutions, and 12,972 acceptable guesses.\cite{Wardle}\cite{Glaiel} Solutions are limited to commonly-known, non-S-plural words. The default version of the game is assumed, wherein guesses need not be consistent with known information. Games are assumed to be mutually independent, and thereby the solver cannot recall previous solutions to reduce the set of initial words.
+Wordle has two dictionaries: 2,315 possible solutions, and 12,972 acceptable guesses.\cite{Wardle}\cite{Glaiel} Solutions are limited to commonly known, non-S-plural words. The default version of the game is assumed, wherein guesses need not be consistent with known information. Games are assumed to be mutually independent, and thereby the solver cannot recall previous solutions to reduce the set of initial words.
 
 \section{Probability and Value}
 
-A matrix $P$ measuring 26x5 is defined, reporting the probability of each letter $\alpha$ in each position $\rho$ of the solution. Guessing a tile that is already known to have zero or unity probability\footnote{Obtained directly by a gray or green tile, or indirectly by deduction.} provides no new information, or value. Accordingly, maximum value must occur at some intermediate $p$ corresponding to minimum certainty. This is modeled as a transfer function relating probability $p$ to value $v$:
+A matrix $P$ measuring 26x5 is defined, reporting the probability of each letter $\alpha$ in each position $\rho$ of the solution. Guessing a tile that is already known to have zero or unity probability\footnote{Obtained directly by a gray or green tile, or indirectly by deduction.} provides no new information, or \emph{value}. Accordingly, maximum value must occur at some intermediate $p$ corresponding to minimum certainty. This is modeled as a transfer function relating probability $p$ to value $v$:
 
 \begin{equation}
 \label{equation_p_vs_v}
@@ -68,49 +68,49 @@ v(p) = \sin (\pi p) ^ {\sfrac{2}{3}} \hspace{2mm} \text{for} \hspace{2mm} 0 \leq
 %v(p) = \bigg( \frac{1}{2} \sin \Big( 2 \pi (p - \sfrac{1}{4} ) \Big) + \sfrac{1}{2} \bigg) ^ {1/3}
 \end{equation}
 
-%\begin{figure}[h!]
-%  \centering
-%    \includegraphics[width=0.5\textwidth]{p_vs_v.eps}
-%  \caption{Transfer function.}
-%\label{p_vs_v}
-%\end{figure}
-
-Another matrix $V$, also measuring 26x5, is then similarly defined. $P$ and $V$ are updated after every move as solutions are eliminated.
+A value matrix $V$, also measuring 26x5, is then similarly defined. $P$ and $V$ are updated after every move as solutions are eliminated.
 
 \section{Scoring and Guessing}
 
 To score the overall value of a word, interactions between tiles are modeled with a set of heuristics, as follows.
 
-A tile with non-unity probability captures the value of that letter in that position, and one-half the value of that letter in all other positions. This is modeled as a 5x5 weight matrix $W$ containing ones on the diagonal and one-half everywhere else; rows correspond to the tile being scored, and columns correpond to the position being evaluated.
+A tile with non-unity probability captures the value of that letter in that position, and one-half the value of that letter in all other positions. This is modeled as a 5x5 weight matrix $W$ containing ones on the diagonal and one-half everywhere else; rows correspond to the tile being scored, and columns correspond to the position being evaluated.
 
-Tiles that letter-match with other tiles in the same word diminish each other's value, as if by \emph{interference}. Similarly, when unity-probability occurs, tiles may return as yellow, indicating the already-known tile(s), thereby providing minimal value, as if by \emph{occlusion}. These phenomena are modeled in a 5x5 quality matrix $Q$ given in Table \ref{table_Q_matrix}, itself a function of $q_m$, the quantity of letter-matching tiles, and $q_u$, the quantity of letter-matching unity-probability tiles.
+Tiles that letter-match with other tiles in the same word reduce each other's value, as if by \emph{interference}. Similarly, when unity-probability occurs, tiles may return as yellow, indicating the already-known tile(s), thereby reducing their value, as if by \emph{occlusion}. These phenomena are modeled in a 5x5 quality matrix $Q$ given in Table \ref{table_Q_matrix} as a function of $q_m$, the quantity of letter-matching tiles, and $q_u$, the quantity of letter-matching unity-probability tiles. $Q$ is defined for each tile as the probability of not being occluded divided by the quantity of non-unity letter-matching tiles.
 
-\begin{table}[h!]
+\begin{table}
 \begin{centering}
 \begin{tabular}{l r}
 \bf{Game State} & \bf{Words Left}\\
 \hline
+\noalign{\vskip 2mm}
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{k}{A}\hspace{1 mm}\colorbox{y}{R}\hspace{1 mm}\colorbox{y}{E}\hspace{1 mm}}}} & 2,315\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{y}{D}\hspace{1 mm}\colorbox{k}{I}\hspace{1 mm}\colorbox{k}{N}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}}}} & 117\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{U}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{k}{A}\hspace{1 mm}\colorbox{k}{M}\hspace{1 mm}\colorbox{k}{A}\hspace{1 mm}}}} & 3\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{D}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}}}} & 1\\
+\noalign{\vskip 2mm}
 \hline
+\noalign{\vskip 2mm}
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{k}{A}\hspace{1 mm}\colorbox{k}{R}\hspace{1 mm}\colorbox{k}{E}\hspace{1 mm}}}} & 2,315\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{T}\hspace{1 mm}\colorbox{k}{H}\hspace{1 mm}\colorbox{g}{I}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{y}{K}\hspace{1 mm}}}} & 63\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{g}{K}\hspace{1 mm}\colorbox{g}{I}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}}}} & 1\\
+\noalign{\vskip 2mm}
 \hline
+\noalign{\vskip 2mm}    
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{S}\hspace{1 mm}\colorbox{y}{O}\hspace{1 mm}\colorbox{y}{A}\hspace{1 mm}\colorbox{k}{R}\hspace{1 mm}\colorbox{k}{E}\hspace{1 mm}}}} & 2,315\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{y}{T}\hspace{1 mm}\colorbox{y}{A}\hspace{1 mm}\colorbox{y}{L}\hspace{1 mm}\colorbox{y}{O}\hspace{1 mm}\colorbox{k}{N}\hspace{1 mm}}}} & 44\\
 \noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{O}\hspace{1 mm}\colorbox{g}{F}\hspace{1 mm}\colorbox{g}{T}\hspace{1 mm}}}} & 6\\
-\hline
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{y}{A}\hspace{1 mm}\colorbox{k}{R}\hspace{1 mm}\colorbox{y}{E}\hspace{1 mm}}}} & 2,315\\
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{C}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{k}{N}\hspace{1 mm}}}} & 68\\
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{B}\hspace{1 mm}\colorbox{y}{E}\hspace{1 mm}\colorbox{y}{P}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{T}\hspace{1 mm}}}} & 5\\
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{P}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{T}\hspace{1 mm}}}} & 1\\
-\hline
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}\colorbox{k}{E}\hspace{1 mm}}}} & 2,315\\
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{T}\hspace{1 mm}\colorbox{g}{H}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{k}{C}\hspace{1 mm}\colorbox{k}{K}\hspace{1 mm}}}} & 11\\
-\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{g}{H}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}\colorbox{g}{D}\hspace{1 mm}}}} & 2\\
+\noalign{\vskip 2mm}
+%\hline
+%\noalign{\vskip 2mm}    
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{y}{A}\hspace{1 mm}\colorbox{k}{R}\hspace{1 mm}\colorbox{y}{E}\hspace{1 mm}}}} & 2,315\\
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{C}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{k}{N}\hspace{1 mm}}}} & 68\\
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{B}\hspace{1 mm}\colorbox{y}{E}\hspace{1 mm}\colorbox{y}{P}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{T}\hspace{1 mm}}}} & 5\\
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{P}\hspace{1 mm}\colorbox{g}{L}\hspace{1 mm}\colorbox{g}{E}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{T}\hspace{1 mm}}}} & 1\\
+%\hline
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{k}{O}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}\colorbox{k}{E}\hspace{1 mm}}}} & 2,315\\
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{k}{T}\hspace{1 mm}\colorbox{g}{H}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{k}{C}\hspace{1 mm}\colorbox{k}{K}\hspace{1 mm}}}} & 11\\
+%\noindent \vspace{0 mm} \texttt{\textcolor{white}{\textbf{\colorbox{g}{S}\hspace{1 mm}\colorbox{g}{H}\hspace{1 mm}\colorbox{g}{A}\hspace{1 mm}\colorbox{g}{R}\hspace{1 mm}\colorbox{g}{D}\hspace{1 mm}}}} & 2\\
 \end{tabular}
 \vspace{2 mm}
 \caption{Solutions for recent games.}
@@ -123,8 +123,8 @@ The scalar score $S$ of a word is then given by:
 \begin{equation}
 \label{equation_p_vs_v}
 S = \sum_{\rho=1}^{5}\begin{cases} 
-	Q(\rho) W(\rho) \boldsymbol{\cdot} V(\alpha) & \text{if} \hspace{2mm} P(\alpha,\rho)<1\\
-	0 & \text{if} \hspace{2mm} P(\alpha,\rho)=1\\
+	Q(\rho) W(\rho) \boldsymbol{\cdot} V\big(\alpha(\rho)\big) & \text{if} \hspace{2mm} P\big(\alpha(\rho),\rho\big)<1\\
+	0 & \text{if} \hspace{2mm} P\big(\alpha(\rho),\rho\big)=1\\
    \end{cases}
 \end{equation}
 
@@ -152,17 +152,9 @@ $\vdots$ & & & & $\ddots$ \\
 \end{centering}
 \end{table}
 
-\pagebreak
-
 \section{Eliminating Solutions}
 
-After each guess, some solutions can be eliminated. This is executed sequentially, tile-by-tile, as follows.
-
-\emph{Gray tile.} If any and all additional letter-matching tiles are also gray, eliminate words that contain this letter. Otherwise, eliminate words that contain this letter in this position, and eliminate words that do not contain the overall quantity of this letter indicated.
-
-\emph{Yellow tile.} Eliminate words that contain this letter in this position, and eliminate words that do not contain this letter in non-green non-letter-matching tiles.
-
-\emph{Green tile.} Eliminate words that do not contain this letter in this position.
+Each guess returns a color-coded response. Invoking proof by contrapositive, words whose simulated responses to the previous guess do not match the previous response cannot be the solution and are therefore eliminated.
 
 \section{Results}
 
@@ -173,16 +165,16 @@ Top-scoring first words are shown in Table \ref{table_words}. Solutions for rece
 \begin{tabular}{ r | l | l}
 \bf Rank & \bf Word & \bf Score\\
 \hline
-1  & \texttt{SOARE} & 1.00000\\
-2  & \texttt{ROATE} & 0.98966\\
-3  & \texttt{ORATE} & 0.97787\\
-4  & \texttt{TALER} & 0.97782\\
-5  & \texttt{STARE} & 0.97748\\
-%6  & \texttt{RAILE} & 0.97680\\
-%7  & \texttt{AROSE} & 0.97151\\
-%8  & \texttt{SLATE} & 0.97066\\
-%9  & \texttt{LATER} & 0.96923\\
-%10 & \texttt{ARIEL} & 0.96838\\
+1  & \texttt{SOARE} & 1.00000 \\
+2  & \texttt{ROATE} & 0.98966 \\
+3  & \texttt{ORATE} & 0.97787 \\
+4  & \texttt{TALER} & 0.97782 \\
+5  & \texttt{STARE} & 0.97748 \\
+6  & \texttt{RAILE} & 0.97680 \\
+7  & \texttt{AROSE} & 0.97151 \\
+8  & \texttt{SLATE} & 0.97066 \\
+9  & \texttt{LATER} & 0.96923 \\
+10 & \texttt{ARIEL} & 0.96838 \\
 \end{tabular}
 \vspace{2 mm}
 \caption{Top-scoring first words.}
@@ -197,9 +189,9 @@ Top-scoring first words are shown in Table \ref{table_words}. Solutions for rece
 \hline
 1 & 0 & 0.000 & 0.000\\
 2 & 52 & 0.022 & 0.022\\
-3 & 1026 & 0.443 & 0.466\\
-4 & 1050 & 0.454 & 0.919\\
-5 & 179 & 0.077 & 0.997\\
+3 & 1025 & 0.443 & 0.465\\
+4 & 1056 & 0.456 & 0.921\\
+5 & 174 & 0.075 & 0.997\\
 6 & 8 & 0.003 & 1.000\\
 x & 0 & 0.000 & 1.000\\
 \end{tabular}
@@ -215,7 +207,7 @@ x & 0 & 0.000 & 1.000\\
 \begin{tabular}{l || r | r | r | r | l}
 \bf Solver & \bf Win \% & \bf Mean & \bf Stdev. & \bf Worst & \bf Opener\\
 \hline \hline
-Author\cite{Dichter} & 100.0 & 3.596 & 0.679 & 6 & \texttt{SOARE}\\ \hline
+Author\cite{Dichter} & 100.0 & 3.594 & 0.676 & 6 & \texttt{SOARE}\\ \hline
 Sanderson\cite{Sanderson} & 100.0 & 3.438 & 0.645 & 6 & \texttt{CRANE}\\
 Glaiel\cite{Glaiel} & 100.0 & 3.494 & - & 5 & \texttt{ROATE}\\
 Chao\cite{Chao} & 99.7 & 3.420 & - & x & \texttt{OPERA}\\
@@ -228,9 +220,11 @@ Twitter\cite{WordleStats} & 97.9 & 4.061 & 1.208 & x & \texttt{-}\\
 \end{centering}
 \end{table}
 
+\pagebreak
+
 \section{Discussion}
 
-All games are opened with the top-scoring word \texttt{SOARE}. In the middlegame, emergent strategies can be seen, such as abandoning green tiles until the endgame, shifting yellow tiles to alternate positions, and reusing gray tiles for high-value words. The cumulative density function (CDF) shows that 91.9\% of games are won within four moves, 99.7\% within five, and 100\% within six. The probability density function (PDF) shows a mode of four moves, with an associated probability of 45.4\%. The average score is within 5\% of the current-best solvers, which require significantly more computation.
+All games are opened with the top-scoring word \texttt{SOARE}. In the middlegame, emergent strategies can be seen, such as abandoning green tiles until the endgame, shifting yellow tiles to alternate positions, and reusing gray tiles for high-value words. The cumulative density function (CDF) shows that 92.1\% of games are won within four moves, 99.7\% within five, and 100\% within six. The probability density function (PDF) shows a mode of four moves, with an associated probability of 45.6\%. The average score is within 5\% of the current-best solvers, which require significantly more computation.
 
 \section{Acknowledgments}
 
@@ -239,7 +233,7 @@ The author gratefully thanks Jess Hall, Julius Dichter, Orion Taylor, Adam Filio
 \begin{figure}[h!]
   \centering
     \includegraphics[width=0.5\textwidth]{performance_comparison.eps}
-  \caption{Comparison of solver distributions. \rm Typical and current-best play are shown as limiting cases.}
+  \caption{Comparison of solver distributions. \rm Unassisted and current-best play are shown as limiting cases.}
 \label{performance_comparison}
 \end{figure}
 
