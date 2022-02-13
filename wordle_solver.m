@@ -76,11 +76,11 @@
     
     %% Inputs
     
-    record_log = 0;
-    
+    record_log    = 0;
+    show_graphics = 1;
     usermode      = 'auto'; % 'auto', 'manual', or 'debug'
     qty_suggest   = 10;     % 'manual' usermode - number of words to show after every guess
-    auto_game_qty = 2315;   % 'auto'   usermode - number of iterations to perform. If set to 2315, plays all games. If <2,315, plays random games.
+    auto_game_qty = 2315;   % 'auto'   usermode - number of random games to play; if set to 2315, plays all games in order
     auto_list     = {       % 'auto'   usermode - specific solutions to solve; leave empty if not using
 
                     };
@@ -89,10 +89,9 @@
     fn_dict_guesses   = 'wordlist_guesses.txt';
     
     % Solver parameters
-    green_yellow_ratio = 2; % value_green / value_yellow, relative
-    P_vs_V.shape       = 'sine'; % transfer function, probability vs. value
-    QUAL               = zeros(5); % Quality matrix
-    QUAL(1:3,1:3)      = [1 1/2 1/3; 0 1/4 1/4; 0 0 1/3];
+    P_vs_V.shape = 'sine'; % transfer function, probability vs. value
+    WEIGHT       = zeros(5)+1/2 + (1/2).*eye(5);
+    QUALITY      = [1 1/2 1/3 0 0; 0 1/4 1/4 0 0; 0 0 1/3 0 0; 0 0 0 0 0; 0 0 0 0 0];
     
     %% Generate transfer function
     % Probability P vs. value V (one-dimensional)
@@ -130,19 +129,24 @@
             error('P_vs_S.shape not recognized')
     end
     
-    figure(5)
-    clf
-    set(gcf,'color','white')
-    plot(P_vs_V.prob, P_vs_V.val, 'k')
-    set(gca,'xtick',0:0.1:1)
-    set(gca,'ytick',0:0.1:1)
-    grid on
-    grid minor
-    xlabel('Probability, ~')
-    ylabel('Value, ~')
-    axis square
-    axis equal
-    drawnow
+    switch usermode
+        case 'debug'
+            figure(1)
+            clf
+            set(gcf,'color','white')
+            plot(P_vs_V.prob, P_vs_V.val, 'k')
+            set(gca,'xtick',0:0.1:1)
+            set(gca,'ytick',0:0.1:1)
+            grid on
+            grid minor
+            xlabel('Probability, ~')
+            ylabel('Value, ~')
+            axis square
+            axis equal
+            drawnow
+        otherwise
+            % Do nothing
+    end
     
     %% Constants
     
@@ -155,6 +159,11 @@
         alpha_cell_array{ind_letter} = alphabet(ind_letter);
     end
     
+    % Official Wordle colors
+    color_g = [129,170,105];
+    color_y = [195,180,95];
+    color_k = [121,124,126];
+    
     %% Load dictionaries
     
     DICT_SOL_read_only = sort(importdata(fn_dict_solutions));
@@ -162,13 +171,7 @@
     
     word_length = length(DICT_SOL_read_only{1});
     
-    %% Pre-calculate some quantities for speed
-    
-    % Generate a WEIGHT matrix
-    WEIGHT = eye(word_length);
-    WEIGHT(WEIGHT==1) = green_yellow_ratio;
-    WEIGHT(WEIGHT==0) = 1;
-    WEIGHT = WEIGHT ./ max(WEIGHT(:));
+    %% Pre-calculate quantities for speed
     
     % Alphabetical indices, and quantity of letter-matching tiles
     IA = zeros(length(DICT_GUE),word_length); % index, alphabetical
@@ -218,7 +221,14 @@
 
         DICT_SOL = DICT_SOL_read_only;          % reset the solutions
         response = repmat('k',[1,word_length]); % initialize as all wrong
-
+       
+        if show_graphics
+            figure(5)
+            clf
+            set(gcf,'color','white')
+            hold on
+        end
+                
         % Generate the solution
         switch usermode
             case {'auto', 'debug'}
@@ -251,19 +261,7 @@
 
             PROB = zeros(length(alphabet), word_length);
 
-            switch usermode
-                case {'manual','debug'}
-                    figure(1)
-                        clf
-                        set(gcf,'color','white')
-                        pos = get(gcf,'position');
-                        set(gcf,'position',[pos(1) 50 560 900])
-                otherwise
-                    % Do nothing
-            end
-
             for ind_position = 1 : word_length
-
                 letters = repmat(' ',[length(DICT_SOL),1]);
                 for w = 1 : length(DICT_SOL)
                     letters(w) = DICT_SOL{w}(ind_position);
@@ -273,11 +271,15 @@
                     qty_words(ind_letter) = length(find(letters == alphabet(ind_letter)));
                 end
                 PROB(:,ind_position) = qty_words ./ length(DICT_SOL); % normalize from counts to probabilities
-
             end
 
             switch usermode
-                case {'manual','debug'}
+                case 'debug'
+                    figure(2)
+                        clf
+                        set(gcf,'color','white')
+                        pos = get(gcf,'position');
+                        set(gcf,'position',[pos(1) 50 560 900])
                     for ind_position = 1 : word_length
                         subplot(word_length,1,ind_position)
                         cla
@@ -292,8 +294,7 @@
                         xlim([0 length(alphabet)+1])
                         ylim([0 ceil(max(PROB(:))/0.05)*0.05])
                     end
-                    
-                case 'auto'
+                otherwise
                     % Do nothing
             end
 
@@ -305,15 +306,14 @@
             VALUE = reshape(VALUE, size(PROB));
 
             switch usermode
-                case {'manual','debug'}
-                    figure(2)
+                case 'debug'
+                    figure(3)
                         clf
                         set(gcf,'color','white')
                         pos = get(gcf,'position');
                         set(gcf,'position',[pos(1) 50 560 900])
 
                     for ind_position = 1 : word_length
-
                         % Plot the result
                         subplot(word_length,1,ind_position)
                         cla
@@ -327,10 +327,8 @@
                             ylim([0 max(VALUE(:))])
                         end
                         title(['\rmValue of ' num2str(length(DICT_SOL)) ' Valid ' num2str(word_length) '-Letter Words By Position #' num2str(ind_position) '\rm'])
-
                     end
-                
-                case 'auto'
+                otherwise
                     % Do nothing
             end
 
@@ -350,8 +348,8 @@
                 ind_alpha = IA(w,:);
                 q_m       = QM(w,:);
                 q_u       = QU(ind_alpha);
-                lin_ind   = q_u+1 + (q_m'-1)*word_length; % this is equivalent to sub2ind, but much faster
-                Qual      = QUAL(lin_ind);
+                lin_ind   = q_u+1 + (q_m'-1)*word_length; % equivalent to sub2ind, but faster
+                Qual      = QUALITY(lin_ind);
                 
                 prob   = PROB(ind_alpha,:);
                 skip   = find(diag(prob)==1);
@@ -364,7 +362,7 @@
             
             ms = max(Score_Gue(:));
             if ms ~= 0 % prevent divide-by-zero
-                Score_Gue = Score_Gue ./ max(Score_Gue(:)); % normalize 0-1
+                Score_Gue = Score_Gue ./ ms; % normalize 0-1
             end
 
             [~, ind_best_gue] = sort(Score_Gue,'descend');
@@ -386,7 +384,6 @@
                 case 'auto'
                     % Do nothing
                 case {'manual','debug'}
-            
                     disp(' ')
                     disp('Guesses, alphabetical, to win:')
                     for i = 1 : min([length(DICT_SOL) qty_suggest])
@@ -470,18 +467,47 @@
             
             DICT_SOL = DICT_SOL(find(~to_eliminate));
             
+            %% Show the game state
+            
+            if show_graphics
+                    
+                figure(5)
+                y = -ind_round;
+
+                for t = 1 : word_length
+
+                    switch response(t)
+                        case 'k'
+                            col = color_k;
+                        case 'y'
+                            col = color_y;
+                        case 'g'
+                            col = color_g;
+                    end
+
+                    square_size = 0.90;
+                    fill_x = [1 1 0 0].*square_size - 1/2*square_size;
+                    fill_y = [1 0 0 1].*square_size - 1/2*square_size;
+                    fill(t+fill_x, y+fill_y, col./255)
+                    text(t,y, ['\bf '  upper(guess(t)) ' '],'Color', 'w', 'FontSize',25,'FontName','FixedWidth','HorizontalAlignment','center','VerticalAlignment','middle')
+                    axis equal
+                    xlim([0 6])
+                    ylim([-7 0])
+
+                end
+
+                drawnow
+                
+            end
+            
             switch usermode
                 case 'debug'
-                    drawnow
                     pause
                 otherwise
                     % Do nothing
             end
-
-        end
         
-        % At this point, have either won the game or run out of possible
-        % solutions
+        end % At this point, have either won the game or run out of possible solutions
 
         if length(DICT_SOL) ~= 1
             warning('Guesses did not converge')
@@ -506,8 +532,8 @@
             switch usermode
                 case 'auto'
                     % Show a persistent monitor so the user doesn't have to
-                    % read the Command Window as the log is flying by quickly
-                    figure(8)
+                    % read moving text in Command Window
+                    figure(4)
                     clf
                     set(gcf,'color','white')
                     axis off
@@ -536,6 +562,11 @@
     end
     
 % end
+
+
+
+
+
 
 
 

@@ -1,11 +1,14 @@
 function response = wordle_response(solution, guess)
 
-    if length(solution) ~= length(guess)
+    len_sol = length(solution);
+
+    if len_sol ~= length(guess)
         error('length(solution) ~= length(guess)')
     end
     
     % Initialize as gray
-    response = repmat('k', [1,length(solution)]);
+    response = 'k';
+    response = response(:,ones(1,len_sol)); % equivalent to repmat('k',[1,length(solution)]), but faster
     
     % Green tiles
     for i = 1 : length(solution)
@@ -24,11 +27,13 @@ function response = wordle_response(solution, guess)
             continue % do not overwrite green tiles
         end
         
-        if guess(i)~=solution(i) && length(find(guess(i)==solution))>0
+        ind_match = find(guess(i)==solution);
+        
+        if length(ind_match) > 0 % && guess(i)~=solution(i)
             
             response(i) = 'y';
-            i_match = min(find(solution==guess(i)));
-            solution(i_match) = 'X'; % prevent double-matching
+            ind_match_first = min(ind_match);
+            solution(ind_match_first) = 'X'; % prevent double-matching
             
         end
         
