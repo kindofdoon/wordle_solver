@@ -185,6 +185,8 @@
             QM(w,t) = length(ind_match); % number of tiles of this letter
         end
     end
+    
+    One_Col_Vect = ones(word_length,1);
 
     %% Main body for all game(s)
     
@@ -356,7 +358,8 @@
                 Toggle = ones(word_length,1);
                 Toggle(skip) = 0;
                 
-                Score_Gue(w) = sum( sum(VALUE(ind_alpha,:).*WEIGHT, 2) .* Qual.*Toggle, 1);
+%                 Score_Gue(w) = sum( sum(VALUE(ind_alpha,:).*WEIGHT, 2) .* Qual.*Toggle, 1);
+                Score_Gue(w) = ((VALUE(ind_alpha,:).*WEIGHT) * One_Col_Vect .* Qual .* Toggle)' * One_Col_Vect;
 
             end
             
@@ -562,7 +565,6 @@
     end
     
 % end
-
 
 
 
